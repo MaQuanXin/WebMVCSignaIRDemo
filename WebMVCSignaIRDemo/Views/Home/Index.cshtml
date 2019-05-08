@@ -1,0 +1,83 @@
+﻿@{
+    ViewBag.title = "SignaIR聊天窗口";
+}
+@*========================1.1=========================*@
+@*<div class="container">
+        <input type="text" id="message" />
+        <input type="button" id="sendmessage" value="biubiu" />
+        <ul id="messageBox"></ul>
+    </div>*@
+
+
+@*========================2.1=========================*@
+<br />
+<div class="container">
+    <label>房间号：</label><input type="text" id="groupId" /><br />
+    <label>用户名：</label><input type="text" id="userName" /><br />
+    <label>信息：</label><input type="text" id="message" /><br />
+    <input type="button" id="joinRoom" value="加入聊天室" /><br />
+    <input type="button" id="send" value="biubiu" /><br />
+    <ul id="contentMsg"></ul>
+</div>
+
+
+
+
+@section scripts
+{
+    <!---参考信号库-->
+    <script src="~/Scripts/jquery.signalR-2.4.1.min.js"></script>
+    <!--引用自动生成的信号器集线器脚本-->
+    <script src="~/signalr/hubs"></script>
+    <script>
+
+        $(function () {
+            //引用自动生成的集线器代理
+            var chat = $.connection.ServerHub;
+
+            //========================1.1=========================
+            ////定义服务器调用的客户端sendMessage来显示新消息
+            //chat.client.sendMessage = function (name, message) {
+            //    //向页面添加消息
+            //    $("#messageBox").append('<li><strong style="color:green">' + name + '</strong>:' + message + '</li>');
+            //}
+            ////设置焦点到输入框
+            //$('#message').focus();
+            ////开始连接服务器
+            //$.connection.hub.start().done(function () {
+            //    $('#sendmessage').click(function () {
+            //        //调用服务器端集线器的Send方法
+            //        chat.server.sendMsg($('#message').val());
+            //        //清空输入框信息并获取焦点
+            //        $("#message").val('').focus();
+            //    })
+            //})
+
+            //========================2.1=========================
+            chat.client.addSomeMessage = function (groupId, detail, userName) {
+                console.info("广播消息：" + detail);
+                $("#contentMsg").append("<li>" + userName + ": " + detail + "</li>");
+            };
+
+            chat.client.addUserIn = function (groupId, userName) {
+                $("#contentMsg").append("<li>" + userName + "进入" + groupId + "号聊天室！</li>");
+            };
+            $.connection.hub.logging = true; //启动signalr状态功能
+            $.connection.hub.start().done(function () {
+                //加入聊天室
+                $("#joinRoom").click(function () {
+                    var groupId = $("#groupId").val();
+                    var userName = $("#userName").val();
+                    chat.server.addToRoom(groupId, userName);
+                });
+                //发送消息
+                $("#send").click(function () {
+                    var detail = $("#message").val();
+                    var groupId = $("#groupId").val();
+                    var userName = $("#userName").val();
+                    chat.server.send(groupId, detail, userName);
+                });
+            });
+        });
+    </script>
+}

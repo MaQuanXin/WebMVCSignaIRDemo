@@ -1,0 +1,1 @@
+﻿1.程序包管理器控制台-install-package Microsoft.AspNet.SignalR
